@@ -1,17 +1,25 @@
 cjson  = require "cjson"
 config = require "config"
+rules  = require "rule"
 
-local match = string.match
-local ngxmatch=ngx.re.match
+regular_rule = rules.regular_rule[config.rule] or rules.regular_rule["default"]
+cc_URL_list  = rules.cc_URL_list
 
-function saveFile(data)	
+function debug_display(msg)
+    ngx.header.content_type = "text/html"
+    ngx.say(msg)
+    ngx.exit(ngx.HTTP_OK)
+end
+
+
+function save_to_file(msg)	
 
     if config.to_log then
         local fd = io.open(config.log_path,"ab")
 
         if fd == nil then return end
 
-        fd:write(data)
+        fd:write(msg)
         fd:flush()
         fd:close()
 
@@ -21,8 +29,7 @@ end
 
 function log(module_name, info)
 
-    saveFile(
-        string.format(
+    local msg = string.format(
             [[%s: %s [%s] "%s %s %s" "%s" "%s"]] .. "\n", 
             module_name,
             info.client_ip,
@@ -33,7 +40,13 @@ function log(module_name, info)
             info.http_referer or "_",
             info.http_user_agent or "-"
         )
-    )
+
+	if config.__DEBUG__ then 
+        debug_display(msg)
+    else
+        save_to_file(msg)
+	end
+    
 end
 
 function get_client_info ()
@@ -58,16 +71,14 @@ function waf_modules_start(modules,info)
 
     for _,handler in ipairs(modules) do
         fail_tag = handler(info)
-        if fail_tag then
-            return fail_tag
-        end
+        if fail_tag then return fail_tag end
     end
 
 end
 
 
 function post_waf_handler(result, info)
-    log(result,info)
+    log(result.msg,info)
 end
 
 --- 模块内容定义
@@ -75,7 +86,7 @@ function WhiteIPPass(info)
 end
 
 function BlockIP(info)
-    return { 
+    return {
         msg    = "IP blocked",
         action = "redict"
     }
@@ -90,8 +101,37 @@ function CheckUA(info)
 end
 function CheckURL(info)
 end
-function CheckArgs(info)
+function check_get_args(info)
+    local args, _req_get = ngx.req.get_uri_args(), nil
+
+    for _,v in pairs(args) do
+        if type(v) ~= "boolean" then
+            if type(v) == "table" then
+                local _v,table_concat_return = pcall(function()  return table.concat(v," ")   end)
+                if _v then
+                    _req_get = table_concat_return
+                else
+                    _req_get = nil
+                end
+            else
+                _req_get = v
+            end
+
+            -- 用正则表达式去匹配get参数规则
+            if _req_get then 
+                _req_get = config.unescape(_req_get)
+                if config.ngx_match(_req_get,regular_rule.get,"isjo") then
+                   return {
+                       msg    = "Get Injection",
+                       action = "redict",
+                   }
+                end
+            end
+
+        end
+    end
 end
+
 function CheckCookie(info)
 end
 function CheckPostData(info)
