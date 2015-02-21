@@ -114,7 +114,7 @@ end
 
 function BlockIP(info)
     return {
-        msg    = "IP blocked",
+        msg    = "IP_BLOCKED",
         action = "redict"
     }
 end
@@ -147,10 +147,9 @@ function check_get_args(info)
             -- 用正则表达式去匹配get参数规则
             if _req_get then 
                 _req_get = config.unescape(_req_get)
---                debug_display(_req_get..":"..regular_rule.get)
                 if config.ngx_match(_req_get,regular_rule.get,"isjo") then
                    return {
-                       msg    = "Get Injection",
+                       msg    = "GET_BLOCKED",
                        action = "redict",
                    }
                 end
@@ -182,8 +181,9 @@ function check_post_data(info)
 --    debug_display(info.request_method)
     if info.request_method == "POST" then
         -- 获取boundary
-        local boundary = string.match(info.headers["content-type"],"boundary=(.+)")
-        if boundary then  -- mutil form
+        --local boundary = string.match(info.headers["content-type"],"boundary=(.+)")
+        local boundary = info.headers["content-type"]
+        if boundary and string.match(boundary,"boundary=(.+)") then  -- mutil form
             boundary = "--" .. boundary
             ngx.req.read_body()
             local allbody = ngx.req.get_body_data()
@@ -200,7 +200,7 @@ function check_post_data(info)
 
                             if config.ngx_match(now,regular_rule.post,"isjo") then 
                                 return {
-                                    msg    = "POST Injection",
+                                    msg    = "POST_BLOCKED",
                                     action = "redict",
                                 }
                             end -- config.ngx_match
@@ -209,7 +209,7 @@ function check_post_data(info)
                                 uploadFileExtension = uploadFileExtension[1]
                                 if is_in_table(not_allow_upload_file_extensions,string.lower(uploadFileExtension)) then
                                     return {
-                                        msg    = "POST Injection",
+                                        msg    = "POST_BLOCKED",
                                         action = "redict",
                                     }
                                 end -- belial
@@ -221,20 +221,27 @@ function check_post_data(info)
                 --Log("nginx 's client_max_body_size and client_body_buffer_size is too small","notice")
             end --if allbody
         else --boundary
+            -- 没有获取到 boundary
+            ngx.req.read_body()
             local post_args, _req_post = ngx.req.get_post_args(), nil
             for _,v in pairs(post_args) do
                 if type(v) ~= "boolean" then
                     if type(v) == "table" then
-                        _req_post = table.concat(v," ")
+                        local _v,table_concat_return = pcall(function()  return table.concat(v," ")   end)
+                        if _v then
+                            _req_post = table_concat_return
+                        else
+                            _req_post = nil
+                        end
                     else
                         _req_post = v
-                    end -- if type(v) = "table"
+                    end
 
                     if _req_post then
                         _req_post = config.unescape(_req_post)
                         if config.ngx_match(_req_post,regular_rule.post,"isjo") then
                             return {
-                                msg    = "POST Injection",
+                                msg    = "POST_BLOCKED",
                                 action = "redict",
                             }
                         end -- if config.ngx_match
