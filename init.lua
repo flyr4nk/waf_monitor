@@ -94,13 +94,10 @@ end
 
 function waf_modules_start(modules,info)
     local ret = nil
-    local out = ""
     for _,handler in ipairs(modules) do
         ret = handler(info)
-        out = out..",".._
         if ret then return ret end
     end
---    debug_display(out)
 end
 
 
@@ -125,6 +122,14 @@ end
 function WhiteURLPass(info)
 end
 function CheckUA(info)
+    if info.http_user_agent then
+        if config.ngx_match(info.http_user_agent, regular_rule.ua,"isjo") then
+            return {
+                msg    = "UA_BLOCKED",
+                action = "redict",
+            }
+        end
+    end
 end
 function CheckURL(info)
 end
@@ -178,10 +183,8 @@ end
 
 
 function check_post_data(info)
---    debug_display(info.request_method)
     if info.request_method == "POST" then
         -- 获取boundary
-        --local boundary = string.match(info.headers["content-type"],"boundary=(.+)")
         local boundary = info.headers["content-type"]
         if boundary and string.match(boundary,"boundary=(.+)") then  -- mutil form
             boundary = "--" .. boundary
