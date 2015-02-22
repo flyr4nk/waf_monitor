@@ -121,6 +121,11 @@ end
 --ngx.var.http_X_Scan_Memo
 function WhiteURLPass(info)
 end
+
+--
+-- 拦截常见的扫描器
+--
+
 function CheckUA(info)
     if info.http_user_agent then
         if config.ngx_match(info.http_user_agent, regular_rule.ua,"isjo") then
@@ -131,8 +136,15 @@ function CheckUA(info)
         end
     end
 end
+
+
 function CheckURL(info)
 end
+
+--
+-- 检查 Get 参数是否有常见的恶意注入
+--
+
 function check_get_args(info)
     local args, _req_get = ngx.req.get_uri_args(), nil
 
@@ -164,6 +176,10 @@ function check_get_args(info)
     end
 end
 
+--
+--  检查cookie内容是否存在注入
+--
+
 function check_cookie(info)
     local _cookie = ngx.var.http_cookie
     if _cookie then
@@ -171,7 +187,7 @@ function check_cookie(info)
             local request_cookie = config.unescape(_cookie)
             if config.ngx_match(request_cookie,regular_rule.cookie,"isjo") then 
                 return {
-                    msg = "COOKIE_BLOCKED",
+                    msg    = "COOKIE_BLOCKED",
                     action = "redict",
 
                 }
@@ -181,6 +197,10 @@ function check_cookie(info)
     
 end
 
+--
+-- 检查 post 的参数是否存在恶意代码
+-- 检查 附近上传的类型是否是脚本类
+--
 
 function check_post_data(info)
     if info.request_method == "POST" then
@@ -212,7 +232,7 @@ function check_post_data(info)
                                 uploadFileExtension = uploadFileExtension[1]
                                 if is_in_table(not_allow_upload_file_extensions,string.lower(uploadFileExtension)) then
                                     return {
-                                        msg    = "POST_BLOCKED",
+                                        msg    = "UPLOAD_BLOCKED",
                                         action = "redict",
                                     }
                                 end -- belial
@@ -254,5 +274,4 @@ function check_post_data(info)
         end --boundary
     end -- if info.request_method == "POST"
 end
-
 

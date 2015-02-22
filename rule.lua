@@ -38,4 +38,14 @@ local cc_URL_list =
 	{"item\\/(.+?)\\.html",120}, --伪静态url
 }
 
-return {regular_rule=regular_rule,cc_URL_list=cc_URL_list}
+local not_allow_upload_file_extensions = {
+    ".php",
+    ".jsp",
+    ".sh",
+}
+
+return {
+    regular_rule=regular_rule,
+    cc_URL_list=cc_URL_list,
+    not_allow_upload_file_extensions= not_allow_upload_file_extensions,
+}
