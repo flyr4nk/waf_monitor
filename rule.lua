@@ -44,8 +44,11 @@ local not_allow_upload_file_extensions = {
     ".sh",
 }
 
+local white_URLs = { }
+
 return {
-    regular_rule=regular_rule,
-    cc_URL_list=cc_URL_list,
-    not_allow_upload_file_extensions= not_allow_upload_file_extensions,
+    regular_rule = regular_rule,
+    cc_URL_list  = cc_URL_list,
+    white_URLs   = white_URLs,
+    not_allow_upload_file_extensions = not_allow_upload_file_extensions,
 }

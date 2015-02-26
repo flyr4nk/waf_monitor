@@ -2,8 +2,9 @@ cjson  = require "cjson"
 config = require "config"
 rules  = require "rule"
 
-regular_rule = rules.regular_rule[config.rule] or rules.regular_rule["default"]
 cc_URL_list  = rules.cc_URL_list
+white_URLs   = rules.white_URLs
+regular_rule = rules.regular_rule[config.rule] or rules.regular_rule["default"]
 not_allow_upload_file_extensions = rules.not_allow_upload_file_extensions
 
 function debug_display(msg)
@@ -15,7 +16,7 @@ end
 
 function save_to_file(msg)	
 
-    if config.to_log then
+    if config.log_path then
         local fd = io.open(config.log_path,"ab")
 
         if fd == nil then return end
@@ -54,8 +55,9 @@ end
 function _False(value)
 	if var == 0 or var == "" or var == nil or var == false then
 		return true
+    else
+        return false
 	end
-	return false
 end
 
 function is_in_table(_table,var)
@@ -102,7 +104,14 @@ end
 
 
 function post_waf_handler(result, info)
-    log(result.msg,info)
+    if not result then return end
+
+    if (result.action == "pass")  then return end
+
+    if (result.action == "redict")   then
+        log(result.msg,info)
+        ngx.exit(404)
+    end
 end
 
 --- 模块内容定义
@@ -115,11 +124,20 @@ function BlockIP(info)
         action = "redict"
     }
 end
+
 function DenyCC(info)
 end
+
 --ngx.var.http_Acunetix_Aspect
 --ngx.var.http_X_Scan_Memo
+
 function WhiteURLPass(info)
+    if is_in_table(white_URLs,info.request_uri) then
+        return {
+            action = "pass",
+            msg    = "WHITE_URL",
+        }
+    end
 end
 
 --
