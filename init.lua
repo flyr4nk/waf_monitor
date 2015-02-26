@@ -109,6 +109,8 @@ function post_waf_handler(result, info)
     if (result.action == "pass")  then return end
 
     if (result.action == "redict")   then
+        ngx.header.content_type = "text/html"
+        ngx.say("pls go away~~")
         log(result.msg,info)
         ngx.exit(404)
     end

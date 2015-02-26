@@ -5,3 +5,5 @@ IP blocked: 127.0.0.1 [2015-02-20 15:45:09] "GET / HTTP/1.1" "-" "Mozilla/5.0 (M
 IP blocked: 127.0.0.1 [2015-02-20 15:45:09] "GET / HTTP/1.1" "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10) AppleWebKit/600.1.25 (KHTML, like Gecko) Version/8.0 Safari/600.1.25"
 IP blocked: 127.0.0.1 [2015-02-20 15:50:01] "GET / HTTP/1.1" "_" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10) AppleWebKit/600.1.25 (KHTML, like Gecko) Version/8.0 Safari/600.1.25"
 IP blocked: 127.0.0.1 [2015-02-20 15:50:01] "GET / HTTP/1.1" "_" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10) AppleWebKit/600.1.25 (KHTML, like Gecko) Version/8.0 Safari/600.1.25"
+GET_BLOCKED: 127.0.0.1 [2015-02-26 21:25:04] "GET /?a=/etc/passwd HTTP/1.1" "_" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10) AppleWebKit/600.1.25 (KHTML, like Gecko) Version/8.0 Safari/600.1.25"
+GET_BLOCKED: 127.0.0.1 [2015-02-26 21:25:13] "GET /?a=/etc/passwd HTTP/1.1" "_" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10) AppleWebKit/600.1.25 (KHTML, like Gecko) Version/8.0 Safari/600.1.25"
